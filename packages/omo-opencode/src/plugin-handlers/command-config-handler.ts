@@ -23,6 +23,7 @@ import {
   loadProjectSkills,
   loadOpencodeGlobalSkills,
   loadOpencodeProjectSkills,
+  loadSharedSkills,
   skillsToCommandDefinitionRecord,
 } from "../features/opencode-skill-loader";
 import {
@@ -69,6 +70,7 @@ export async function applyCommandConfig(params: {
 
   const hostSkillConfig = adaptHostSkillConfig(params.config.skills);
   const [
+    sharedSkillCommands,
     configSourceSkills,
     hostConfigSkills,
     userCommands,
@@ -82,6 +84,7 @@ export async function applyCommandConfig(params: {
     opencodeGlobalSkills,
     opencodeProjectSkills,
   ] = await Promise.all([
+    loadSharedSkills(),
     discoverConfigSourceSkills({
       config: params.pluginConfig.skills,
       configDir: params.ctx.directory,
@@ -103,6 +106,7 @@ export async function applyCommandConfig(params: {
   ]);
 
   params.config.command = {
+    ...filterDisabledSkillCommandRecord(sharedSkillCommands, disabledSkills),
     ...builtinSkillCommands,
     ...builtinCommands,
     ...skillsToCommandDefinitionRecord(filterDisabledLoadedSkills(configSourceSkills, disabledSkills)),

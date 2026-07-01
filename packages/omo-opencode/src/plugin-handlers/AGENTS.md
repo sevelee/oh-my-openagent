@@ -56,7 +56,7 @@ PRs attempting any of the forbidden patterns will be rejected.
 | 3 | `applyAgentConfig` | Load agents from 5 sources, skill discovery, plan demotion |
 | 4 | `applyToolConfig` | Agent-specific tool permissions |
 | 5 | `applyMcpConfig` | Merge builtin + CC + plugin MCPs |
-| 6 | `applyCommandConfig` | Merge commands/skills from 9 parallel sources |
+| 6 | `applyCommandConfig` | Merge commands/skills from 10 parallel sources |
 
 ## FILES
 
@@ -66,7 +66,7 @@ PRs attempting any of the forbidden patterns will be rejected.
 | `plugin-components-loader.ts` | ~100 | CC plugin discovery (10s timeout) |
 | `agent-config-handler.ts` | ~300 | Agent loading + skill discovery from 5 sources |
 | `mcp-config-handler.ts` | ~150 | Builtin + CC + plugin MCP merge |
-| `command-config-handler.ts` | ~200 | 9 parallel sources for commands/skills |
+| `command-config-handler.ts` | ~200 | 10 parallel sources for commands/skills (built-in, shared, config-source, host, user/project/opencode/agents, plugin components) |
 | `tool-config-handler.ts` | ~100 | Agent-specific tool grants/denials |
 | `provider-config-handler.ts` | ~80 | Provider config + model cache |
 | `prometheus-agent-config-builder.ts` | ~100 | Prometheus config with model resolution |

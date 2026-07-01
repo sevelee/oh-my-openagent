@@ -56,6 +56,7 @@ describe("applyCommandConfig", () => {
   let loadOpencodeProjectSkillsSpy: ReturnType<typeof spyOn>;
   let loadProjectAgentsSkillsSpy: ReturnType<typeof spyOn>;
   let loadGlobalAgentsSkillsSpy: ReturnType<typeof spyOn>;
+  let loadSharedSkillsSpy: ReturnType<typeof spyOn>;
   let getSystemMcpServerNamesSpy: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
@@ -72,6 +73,7 @@ describe("applyCommandConfig", () => {
     loadOpencodeProjectSkillsSpy = spyOn(skillLoader, "loadOpencodeProjectSkills").mockResolvedValue({});
     loadProjectAgentsSkillsSpy = spyOn(skillLoader, "loadProjectAgentsSkills").mockResolvedValue({});
     loadGlobalAgentsSkillsSpy = spyOn(skillLoader, "loadGlobalAgentsSkills").mockResolvedValue({});
+    loadSharedSkillsSpy = spyOn(skillLoader, "loadSharedSkills").mockResolvedValue({});
   });
 
   afterEach(() => {
@@ -88,6 +90,7 @@ describe("applyCommandConfig", () => {
     loadOpencodeProjectSkillsSpy.mockRestore();
     loadProjectAgentsSkillsSpy.mockRestore();
     loadGlobalAgentsSkillsSpy.mockRestore();
+    loadSharedSkillsSpy.mockRestore();
   });
 
   test("includes .agents skills in command config", async () => {
@@ -406,5 +409,106 @@ describe("applyCommandConfig", () => {
     // then
     const commandConfig = config.command as Record<string, { description?: string }>;
     expect(commandConfig["host-config-skill"]?.description).toContain("Host config skill");
+  });
+
+  test("includes shared skills as slash commands", async () => {
+    // given
+    loadSharedSkillsSpy.mockResolvedValue({
+      "ulw-research": {
+        description: "(shared - Skill) Ultra research",
+        template: "<skill-instruction>Research</skill-instruction>\n\n<user-request>\n$ARGUMENTS\n</user-request>",
+      },
+      "shared/ulw-research": {
+        description: "(shared - Skill) Ultra research",
+        template: "<skill-instruction>Research</skill-instruction>\n\n<user-request>\n$ARGUMENTS\n</user-request>",
+      },
+    });
+    const config: Record<string, unknown> = { command: {} };
+
+    // when
+    await applyCommandConfig({
+      config,
+      pluginConfig: createPluginConfig(),
+      ctx: { directory: "/tmp" },
+      pluginComponents: createPluginComponents(),
+    });
+
+    // then
+    const commandConfig = config.command as Record<string, { description?: string }>;
+    expect(commandConfig["ulw-research"]?.description).toContain("Ultra research");
+    expect(commandConfig["shared/ulw-research"]?.description).toContain("Ultra research");
+  });
+
+  test("builtin skills override shared skills with the same name", async () => {
+    // given
+    loadBuiltinCommandsSpy.mockReturnValue({
+      "init-deep": {
+        name: "init-deep",
+        description: "(builtin) Initialize hierarchical AGENTS.md",
+        template: "builtin command template",
+      },
+    });
+    loadSharedSkillsSpy.mockResolvedValue({
+      "init-deep": {
+        description: "(shared - Skill) Shared init-deep",
+        template: "shared template",
+      },
+    });
+    const config: Record<string, unknown> = { command: {} };
+
+    // when
+    await applyCommandConfig({
+      config,
+      pluginConfig: createPluginConfig(),
+      ctx: { directory: "/tmp" },
+      pluginComponents: createPluginComponents(),
+    });
+
+    // then
+    const commandConfig = config.command as Record<string, { template?: string }>;
+    expect(commandConfig["init-deep"]?.template).toBe("builtin command template");
+  });
+
+  test("disabled shared skills are not registered as commands", async () => {
+    // given
+    loadSharedSkillsSpy.mockResolvedValue({
+      "ulw-research": {
+        description: "(shared - Skill) Ultra research",
+        template: "<skill-instruction>Research</skill-instruction>",
+      },
+      "shared/ulw-research": {
+        description: "(shared - Skill) Ultra research",
+        template: "<skill-instruction>Research</skill-instruction>",
+      },
+    });
+    const pluginConfig: OhMyOpenCodeConfig = {
+      ...createPluginConfig(),
+      disabled_skills: ["shared/ulw-research"],
+    };
+    const config: Record<string, unknown> = { command: {} };
+
+    // when
+    await applyCommandConfig({
+      config,
+      pluginConfig,
+      ctx: { directory: "/tmp" },
+      pluginComponents: createPluginComponents(),
+    });
+
+    // then
+    const commandConfig = config.command as Record<string, unknown>;
+    expect(commandConfig["ulw-research"]).toBeUndefined();
+    expect(commandConfig["shared/ulw-research"]).toBeUndefined();
+
+    const controlConfig: Record<string, unknown> = { command: {} };
+    await applyCommandConfig({
+      config: controlConfig,
+      pluginConfig: createPluginConfig(),
+      ctx: { directory: "/tmp" },
+      pluginComponents: createPluginComponents(),
+    });
+    const controlCommandConfig = controlConfig.command as Record<string, unknown>;
+    expect(controlCommandConfig["ulw-research"]).toBeDefined();
+    expect(controlCommandConfig["shared/ulw-research"]).toBeDefined();
   });
 });
