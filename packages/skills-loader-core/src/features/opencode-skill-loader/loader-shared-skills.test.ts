@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { loadSharedSkills } from "./loader"
 
 describe("loadSharedSkills", () => {
-  it("returns command definitions for shared skills with bare and shared/ alias names", async () => {
+  it("returns command definitions for shared skills with bare names only", async () => {
     // when
     const commands = await loadSharedSkills()
 
@@ -12,9 +12,7 @@ describe("loadSharedSkills", () => {
     expect(commands["ulw-research"].template).toContain("<skill-instruction>")
     expect(commands["ulw-research"].template).toContain("$ARGUMENTS")
 
-    expect(commands["shared/ulw-research"]).toBeDefined()
-    expect(commands["shared/ulw-research"].description).toContain("Maximum-saturation")
-    expect(commands["shared/ulw-research"].template).toContain("<skill-instruction>")
+    expect(commands["shared/ulw-research"]).toBeUndefined()
 
     expect(commands["ulw-research"].name).toBeUndefined()
     expect(commands["ulw-research"].argumentHint).toBeUndefined()

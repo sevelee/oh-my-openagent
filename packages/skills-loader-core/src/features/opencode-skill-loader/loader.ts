@@ -66,8 +66,7 @@ export async function loadGlobalAgentsSkills(homeDirectory: string = homedir()):
 }
 export async function loadSharedSkills(): Promise<Record<string, CommandDefinition>> {
   const skills = await discoverSharedSkills()
-  const aliases = createSharedCanonicalAliases(skills)
-  return skillsToCommandDefinitionRecord([...skills, ...aliases])
+  return skillsToCommandDefinitionRecord(skills)
 }
 
 
