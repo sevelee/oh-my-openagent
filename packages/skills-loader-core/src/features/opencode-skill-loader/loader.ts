@@ -64,6 +64,12 @@ export async function loadGlobalAgentsSkills(homeDirectory: string = homedir()):
   const skills = await loadSkillsFromDir({ skillsDir: agentsGlobalDir, scope: "user" })
   return skillsToCommandDefinitionRecord(skills)
 }
+export async function loadSharedSkills(): Promise<Record<string, CommandDefinition>> {
+  const skills = await discoverSharedSkills()
+  const aliases = createSharedCanonicalAliases(skills)
+  return skillsToCommandDefinitionRecord([...skills, ...aliases])
+}
+
 
 export interface DiscoverSkillsOptions {
   includeClaudeCodePaths?: boolean

@@ -21,7 +21,7 @@ Same-named skill at higher scope overrides lower.
 
 | File | Purpose |
 |------|---------|
-| `loader.ts` | Main `loadSkills()` — orchestrates discovery → parse → merge |
+| `loader.ts` | Main `loadSkills()` — orchestrates discovery → parse → merge; `loadSharedSkills()` registers bundled shared skills as slash commands |
 | `merger.ts` | Priority-based deduplication across scopes |
 | `skill-content.ts` | YAML frontmatter parsing from SKILL.md |
 | `skill-discovery.ts` | Find SKILL.md files in directory trees |
